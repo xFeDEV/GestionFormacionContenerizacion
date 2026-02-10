@@ -221,3 +221,7 @@ VALUES ('admin', '123456780', 2, 'admin@example.com', 'Indefinido', '3001234567'
 -- Usuario instructor
 INSERT INTO usuario (nombre_completo, identificacion, id_rol, correo, tipo_contrato, telefono, cod_centro, pass_hash)
 VALUES ('instructor', '123456781', 3, 'instru@example.com', 'Indefinido', '3001234567', 9121, '$2b$12$/M0Q68S4r9/aS7z9Qwxez.Cpui5SRaHWIR6WEMKuWz5YBBkeMCXey');
+
+-- Super Admin Docker (correo: superadmin@gestion.com / contraseña: Admin123*)
+INSERT INTO usuario (nombre_completo, identificacion, id_rol, correo, tipo_contrato, telefono, cod_centro, pass_hash)
+VALUES ('Super Admin Docker', '999999999', 1, 'superadmin@gestion.com', 'Indefinido', '3001234567', 9121, '$2b$12$OP8hZhxANkDuF.8P0BoJouTrjPUVI7CgdBQixVdgFpMpPO3SVX6dK');
