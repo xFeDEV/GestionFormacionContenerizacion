@@ -1,0 +1,95 @@
+services:
+  # ========================
+  # Base de Datos - MariaDB
+  # ========================
+  db:
+    image: mariadb:11.7
+    container_name: gestion_formacion_db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - gestion_network
+
+  # ========================
+  # Backend - FastAPI
+  # ========================
+  backend:
+    build:
+      context: ./GestionFormacion
+      dockerfile: Dockerfile
+    container_name: gestion_formacion_backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Gestión Formación}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_SERVER: ${MAIL_SERVER:-smtp.gmail.com}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-True}
+      MAIL_SSL_TLS: ${MAIL_SSL_TLS:-False}
+      USE_CREDENTIALS: ${USE_CREDENTIALS:-True}
+      VALIDATE_CERTS: ${VALIDATE_CERTS:-True}
+    ports:
+      - "8001:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - gestion_network
+
+  # ========================
+  # Frontend - React/Vite
+  # ========================
+  frontend:
+    build:
+      context: ./GestionFormacionFrontEnd
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    container_name: gestion_formacion_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - gestion_network
+
+# ========================
+# Volúmenes
+# ========================
+volumes:
+  mariadb_data:
+    driver: local
+
+# ========================
+# Redes
+# ========================
+networks:
+  gestion_network:
+    driver: bridge

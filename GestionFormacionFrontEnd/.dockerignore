@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+.github
+.gitignore
+*.md
+LICENSE.md
+banner.png
+.dockerignore
+Dockerfile
